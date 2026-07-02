@@ -1,9 +1,12 @@
 #importing libraries & dependencies
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split # type: ignore
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, ConfusionMatrixDisplay # type: ignore
+import pickle as pk
+import matplotlib.pyplot as plt
+import numpy as np
 
 #reading & reviewing data
 server_df = pd.read_csv("data/breast-cancer.csv")
@@ -19,6 +22,7 @@ if 'id' in server2_df.columns:
 #seperating features and targets
 x = server2_df.drop(columns = ['diagnosis'])
 y = server2_df['diagnosis']
+x = x.select_dtypes(include=np.number)
 
 #encoding the object data type
 labelencoder = LabelEncoder()
@@ -59,3 +63,26 @@ print("\n-- Model's Evaluation --")
 print(f"Test accuracy {accuracy*100 :.2f}%")
 print("\nDetailed Classification Report :- ")
 print(classification_report(y_test, y_pred, target_names=['Benign', 'Malignant']))
+
+#Generate the matrix numbers
+# y_test are the real labels, y_pred are your model's predictions
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
+
+#make it visual and easy to understand
+labels = ["Benign", "Malignant"]
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+disp.plot(cmap=plt.cm.Blues)
+plt.title("Confusion Matrix - Breast Cancer Predictor")
+plt.show()
+
+
+model_artifacts = {
+    'model': model,
+    'scaler': scaler
+}
+
+with open('breast_cancer_data.pkl', 'wb') as f:
+    pk.dump(model_artifacts, f)
+
+print("\nAll updated production artifacts saved successfully!")
